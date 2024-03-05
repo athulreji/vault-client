@@ -8,17 +8,21 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 )
 
-var chatItems = make(map[string][]Message)
-var username = ""
-
-var serverConn *websocket.Conn
+var (
+	chatItems  = make(map[string][]Message)
+	username   = ""
+	hi         string
+	serverConn *websocket.Conn
+)
 
 func main() {
 	chatlist := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	chatlist.SetShowHelp(false)
+	chatlist.SetShowFilter(false)
 	chatlist.SetShowStatusBar(false)
 
 	input := textinput.New()
@@ -28,9 +32,16 @@ func main() {
 	messagelist := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	messagelist.SetShowHelp(false)
 	messagelist.SetShowStatusBar(false)
-	m := model{chats: chatlist, messages: messagelist, input: input, usernameInput: usernameInput, passwordInput: passwordInput}
+	messagelist.SetShowFilter(false)
+	m := model{
+		chats:         chatlist,
+		messages:      messagelist,
+		input:         input,
+		usernameInput: usernameInput,
+		passwordInput: passwordInput,
+	}
 	m.chats.Title = "Chats"
-	m.messages.Title = "None"
+	m.chats.Styles.TitleBar.Align(lipgloss.Center)
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	channel := make(chan *websocket.Conn)
@@ -39,7 +50,6 @@ func main() {
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Error creating bubble")
 	}
-
 }
 
 func userLogin() {
@@ -77,25 +87,6 @@ func startConnection(p *tea.Program, ch chan *websocket.Conn) {
 		p.Send(msg)
 		// chats[msg.From] = append(chats[msg.From], msg)
 		// fmt.Println(msg.From+":", msg.Content)
-	}
-}
-
-func readMessages(conn *websocket.Conn) {
-	for {
-		_, msgBytes, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("Read error:", err)
-			return
-		}
-
-		var msg Message
-		err = json.Unmarshal(msgBytes, &msg)
-		if err != nil {
-			fmt.Println("Error decoding JSON:", err)
-			continue
-		}
-		// chats[msg.From] = append(chats[msg.From], msg)
-		fmt.Println(msg.From+":", msg.Content)
 	}
 }
 
@@ -142,5 +133,24 @@ func writeMessages(conn *websocket.Conn, msg Message) {
 // 	if err != nil {
 // 		fmt.Println("Write error:", err)
 // 		return
+// 	}
+// }
+
+// func readMessages(conn *websocket.Conn) {
+// 	for {
+// 		_, msgBytes, err := conn.ReadMessage()
+// 		if err != nil {
+// 			fmt.Println("Read error:", err)
+// 			return
+// 		}
+
+// 		var msg Message
+// 		err = json.Unmarshal(msgBytes, &msg)
+// 		if err != nil {
+// 			fmt.Println("Error decoding JSON:", err)
+// 			continue
+// 		}
+// 		// chats[msg.From] = append(chats[msg.From], msg)
+// 		fmt.Println(msg.From+":", msg.Content)
 // 	}
 // }

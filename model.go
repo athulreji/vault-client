@@ -59,6 +59,7 @@ const (
 	newDM
 	newGC
 	home
+	help
 )
 
 type model struct {

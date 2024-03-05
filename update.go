@@ -31,7 +31,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.messages.Select(len(m.messages.Items()) - 1)
 		}
 
-	//Key bindings
+	// Key bindings
 	case tea.KeyMsg:
 		if m.currentView == home {
 			if m.focus == none {
@@ -79,7 +79,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			//update focused component
+			// update focused component
 			if m.focus == chat {
 				m.chats, cmd = m.chats.Update(msg)
 				cmds = append(cmds, cmd)
@@ -124,9 +124,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 
-	//Gets terminal Window Size
+	// Gets terminal Window Size
 	case tea.WindowSizeMsg:
-		var docStyle = lipgloss.NewStyle().Margin(1, 2)
+		docStyle := lipgloss.NewStyle().Margin(1, 2)
 		h, v := docStyle.GetFrameSize()
 		m.height = msg.Height - h
 		m.width = msg.Width - v
