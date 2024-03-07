@@ -15,13 +15,25 @@ import (
 var (
 	chatItems  = make(map[string][]Message)
 	username   = ""
-	hi         string
 	serverConn *websocket.Conn
 )
 
+var (
+	titleStyle        = lipgloss.NewStyle().MarginLeft(1).Foreground(lipgloss.Color("#928374")).Bold(true)
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#689d6a"))
+	noItemStyle       = lipgloss.NewStyle().PaddingLeft(2).PaddingTop(2).Foreground(lipgloss.Color("#689d6a")).Bold(false)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("#fabd2f"))
+	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+)
+
 func main() {
-	chatlist := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	chatlist := list.New([]list.Item{}, chatItemDelegate{}, 0, 0)
 	chatlist.SetShowHelp(false)
+	chatlist.Styles = list.Styles{
+		TitleBar:        titleStyle,
+		NoItems:         noItemStyle,
+		PaginationStyle: paginationStyle,
+	}
 	chatlist.SetShowFilter(false)
 	chatlist.SetShowStatusBar(false)
 
@@ -29,8 +41,12 @@ func main() {
 	usernameInput := textinput.New()
 	passwordInput := textinput.New()
 
-	messagelist := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	messagelist := list.New([]list.Item{}, messageItemDelegate{}, 0, 0)
+	messagelist.Styles = list.Styles{
+		NoItems: lipgloss.NewStyle().PaddingLeft(2).PaddingTop(2),
+	}
 	messagelist.SetShowHelp(false)
+	messagelist.SetShowTitle(false)
 	messagelist.SetShowStatusBar(false)
 	messagelist.SetShowFilter(false)
 	m := model{

@@ -45,6 +45,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case "n":
 					m.currentView = newDM
 					m.usernameInput.Focus()
+				case "?":
+					m.currentView = help
 				case "/":
 					inputflag = true
 					m.focus = input
@@ -122,6 +124,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.usernameInput, cmd = m.usernameInput.Update(msg)
 			cmds = append(cmds, cmd)
+		} else if m.currentView == help {
+			switch msg.String() {
+			case "esc":
+				m.currentView = home
+			}
 		}
 
 	// Gets terminal Window Size
