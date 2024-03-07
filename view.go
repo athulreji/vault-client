@@ -28,7 +28,7 @@ func getHeadView(m *model) string {
 	} else if m.currentView == login {
 		menuString = " "
 	} else {
-		menuString = username
+		menuString = usernameStyle.Render(username)
 	}
 	headMenu := lipgloss.NewStyle().Bold(false).Width(m.width/2 - 1).Align(lipgloss.Right).Render(menuString)
 	headView := lipgloss.JoinHorizontal(lipgloss.Center, headHeading, headMenu)
