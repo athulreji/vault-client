@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type chatItemDelegate struct{}
@@ -25,7 +26,7 @@ func (d chatItemDelegate) Render(w io.Writer, m list.Model, index int, listItem 
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemStyle.Render("> " + strings.Join(s, " "))
+			return selectedItemStyle.Render(strings.Join(s, " "))
 		}
 	}
 
@@ -43,12 +44,14 @@ func (d messageItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 		return
 	}
 
-	str := fmt.Sprintf("%s: %s", i.From, i.Content)
+	head := lipgloss.NewStyle().Bold(true).Render(i.From)
+
+	str := fmt.Sprintf("%s: %s", head, i.Content)
 
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemStyle.Render("> " + strings.Join(s, " "))
+			return selectedItemStyle.Render(strings.Join(s, " "))
 		}
 	}
 

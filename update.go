@@ -15,7 +15,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case Message:
 		if _, ok := chatItems[msg.From]; !ok {
 			index := m.chats.Index()
-			m.chats.InsertItem(0, Chat{msg.From, "today"})
+			m.chats.InsertItem(0, Chat{name: msg.From})
 			if m.currentChat == "" {
 				m.currentChat = msg.From
 				m.messages.Title = msg.From

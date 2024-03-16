@@ -57,8 +57,9 @@ func getHomeView(m *model) string {
 			Bold(false).
 			Render(m.messages.View())
 	} else {
-		chatsview = boxyStyle.Align(lipgloss.Center).AlignVertical(lipgloss.Center).Width((m.width / 3) - 1).Height(m.height - 4).Render("No chats")
-		messagesview = boxyStyle.Align(lipgloss.Center).AlignVertical(lipgloss.Center).Width((2 * m.width / 3) - 1).Height(m.height - 4).Render("Select a chat")
+		chatWidth := m.width / 3
+		chatsview = boxyStyle.Align(lipgloss.Center).AlignVertical(lipgloss.Center).Width(chatWidth - 2).Height(m.height - 4).Render("No chats")
+		messagesview = boxyStyle.Align(lipgloss.Center).AlignVertical(lipgloss.Center).Width(m.width - chatWidth).Height(m.height - 4).Render("Select a chat")
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m),
@@ -124,7 +125,7 @@ func getHelpView(m *model) string {
 		Bold(true).
 		Foreground(lipgloss.Color("#11bc7a")).
 		Render("Keyboard Shortcuts")
-	helplistView := lipgloss.NewStyle().PaddingLeft(1).Align(lipgloss.Left).Bold(false).Render("\n/ -> Enter Input \nm -> Select Message \nn -> New Message \nc ->  Select Chat\n")
+	helplistView := lipgloss.NewStyle().PaddingLeft(1).Align(lipgloss.Left).Bold(false).Render("\n/ -> Enter Input \nm -> Select Message \nn -> New Message \nc -> Select Chat\n")
 	helpView := boxyStyle.Align(lipgloss.Left).
 		AlignVertical(lipgloss.Top).
 		Width(m.width).

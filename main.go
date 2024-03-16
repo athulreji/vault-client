@@ -19,10 +19,10 @@ var (
 )
 
 var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(1).Foreground(lipgloss.Color("#928374")).Bold(true)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#689d6a"))
-	noItemStyle       = lipgloss.NewStyle().PaddingLeft(2).PaddingTop(2).Foreground(lipgloss.Color("#689d6a")).Bold(false)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("#fabd2f"))
+	titleStyle        = lipgloss.NewStyle().PaddingLeft(0).PaddingTop(0).Foreground(lipgloss.Color("#458588")).Bold(true)
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#689d6a"))
+	noItemStyle       = lipgloss.NewStyle().PaddingLeft(1).PaddingTop(2).Foreground(lipgloss.Color("#689d6a")).Bold(false)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#fabd2f"))
 	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 )
 
