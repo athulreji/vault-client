@@ -28,7 +28,8 @@ func (item Message) FilterValue() string {
 }
 
 type Chat struct {
-	name, desc string
+	name, desc  string
+	isGroupChat bool
 }
 
 func (item Chat) Title() string {
@@ -58,21 +59,23 @@ const (
 	login view = iota
 	newDM
 	newGC
+	joinGC
 	home
 	help
 )
 
 type model struct {
-	height        int
-	width         int
-	chats         list.Model
-	messages      list.Model
-	input         textinput.Model
-	usernameInput textinput.Model
-	passwordInput textinput.Model
-	currentChat   string
-	focus         component
-	currentView   view
+	height         int
+	width          int
+	chats          list.Model
+	messages       list.Model
+	input          textinput.Model
+	usernameInput  textinput.Model
+	groupnameInput textinput.Model
+	passwordInput  textinput.Model
+	currentChat    string
+	focus          component
+	currentView    view
 }
 
 func (m model) Init() tea.Cmd {

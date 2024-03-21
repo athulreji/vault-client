@@ -13,18 +13,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Process Incoming Message
 	case Message:
-		if _, ok := chatItems[msg.From]; !ok {
+		recvChat := Chat{}
+		if msg.IsGroupMsg {
+			recvChat.isGroupChat = true
+			recvChat.name = msg.Group
+		} else {
+			recvChat.isGroupChat = false
+			recvChat.name = msg.From
+		}
+		if _, ok := chatItems[recvChat.name]; !ok {
 			index := m.chats.Index()
-			m.chats.InsertItem(0, Chat{name: msg.From})
+			m.chats.InsertItem(0, recvChat)
 			if m.currentChat == "" {
-				m.currentChat = msg.From
-				m.messages.Title = msg.From
+				m.currentChat = recvChat.name
+				m.messages.Title = recvChat.name
 			} else {
 				m.chats.Select(index + 1)
 			}
 		}
-		chatItems[msg.From] = append(chatItems[msg.From], msg)
-		if m.currentChat == msg.From {
+		chatItems[recvChat.name] = append(chatItems[recvChat.name], msg)
+		if m.currentChat == recvChat.name {
 			m.messages.InsertItem(len(m.messages.Items()), msg)
 			m.messages.Select(len(m.messages.Items()) - 1)
 		}
@@ -43,6 +51,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		} else if m.currentView == help {
 			updateHelp(&m, &msg)
+		} else if m.currentView == newGC {
+			updateNewGroup(&m, &msg, &cmds)
+		} else if m.currentView == joinGC {
+			updateJoinGroup(&m, &msg, &cmds)
 		}
 
 	// Gets terminal Window Size
@@ -70,7 +82,10 @@ func updateHome(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) quit {
 			m.focus = message
 		case "n":
 			m.currentView = newDM
-			m.usernameInput.Focus()
+		case "g":
+			m.currentView = newGC
+		case "j":
+			m.currentView = joinGC
 		case "?":
 			m.currentView = help
 		case "/":
@@ -98,6 +113,11 @@ func updateHome(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) quit {
 				}
 			} else if m.focus == input {
 				newMsg := Message{Type: "message", From: username, To: m.currentChat, Group: "", IsGroupMsg: false, Content: m.input.Value()}
+				if m.chats.SelectedItem().(Chat).isGroupChat {
+					newMsg.IsGroupMsg = true
+					newMsg.Group = m.currentChat
+					newMsg.To = ""
+				}
 				writeMessages(serverConn, newMsg)
 				m.messages.InsertItem(len(m.messages.Items()), newMsg)
 				m.messages.Select(len(m.messages.Items()) - 1)
@@ -123,12 +143,15 @@ func updateHome(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) quit {
 }
 
 func updateNewDM(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) {
+	m.usernameInput.Focus()
 	switch msg.String() {
 	case "esc":
 		m.currentView = home
 		m.usernameInput.Reset()
+		m.usernameInput.Blur()
 	case "enter":
-		m.chats.InsertItem(0, Chat{m.usernameInput.Value(), "today"})
+		m.chats.InsertItem(0, Chat{name: m.usernameInput.Value(), isGroupChat: false})
+		chatItems[m.usernameInput.Value()] = []Message{}
 		m.currentChat = m.usernameInput.Value()
 		m.usernameInput.Reset()
 		m.usernameInput.Blur()
@@ -143,10 +166,66 @@ func updateNewDM(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) {
 	*cmds = append(*cmds, cmd)
 }
 
+func updateNewGroup(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) {
+	m.groupnameInput.Focus()
+	switch msg.String() {
+	case "esc":
+		m.currentView = home
+		m.groupnameInput.Reset()
+		m.groupnameInput.Blur()
+	case "enter":
+		newMsg := Message{Type: "cmd", From: username, Group: m.groupnameInput.Value(), Content: "create group"}
+		writeMessages(serverConn, newMsg)
+
+		m.chats.InsertItem(0, Chat{name: m.groupnameInput.Value(), isGroupChat: true})
+		chatItems[m.groupnameInput.Value()] = []Message{}
+		m.currentChat = m.groupnameInput.Value()
+		m.groupnameInput.Reset()
+		m.groupnameInput.Blur()
+		m.messages.Title = m.currentChat
+		for range len(m.messages.Items()) {
+			m.messages.RemoveItem(0)
+		}
+		m.currentView = home
+	}
+	var cmd tea.Cmd
+	m.groupnameInput, cmd = m.groupnameInput.Update(*msg)
+	*cmds = append(*cmds, cmd)
+}
+
+func updateJoinGroup(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) {
+	m.groupnameInput.Focus()
+	switch msg.String() {
+	case "esc":
+		m.currentView = home
+		m.groupnameInput.Reset()
+		m.groupnameInput.Blur()
+	case "enter":
+		newMsg := Message{Type: "cmd", From: username, Group: m.groupnameInput.Value(), Content: "join group"}
+		writeMessages(serverConn, newMsg)
+
+		m.chats.InsertItem(0, Chat{name: m.groupnameInput.Value(), isGroupChat: true})
+		chatItems[m.groupnameInput.Value()] = []Message{}
+		m.currentChat = m.groupnameInput.Value()
+		m.groupnameInput.Reset()
+		m.groupnameInput.Blur()
+		m.messages.Title = m.currentChat
+		for range len(m.messages.Items()) {
+			m.messages.RemoveItem(0)
+		}
+		m.currentView = home
+	}
+	var cmd tea.Cmd
+	m.groupnameInput, cmd = m.groupnameInput.Update(*msg)
+	*cmds = append(*cmds, cmd)
+}
+
 func updateLogin(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) quit {
 	m.usernameInput.Focus()
 	switch msg.String() {
 	case "q":
+		m.usernameInput.Reset()
+		m.usernameInput.Blur()
 		return true
 	case "enter":
 		username = m.usernameInput.Value()

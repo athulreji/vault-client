@@ -19,7 +19,7 @@ var (
 )
 
 var (
-	titleStyle        = lipgloss.NewStyle().PaddingLeft(0).PaddingTop(0).Foreground(lipgloss.Color("#458588")).Bold(true)
+	titleStyle        = lipgloss.NewStyle().PaddingLeft(0).PaddingTop(0).Foreground(lipgloss.Color("#bdae93")).Bold(true)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#689d6a"))
 	noItemStyle       = lipgloss.NewStyle().PaddingLeft(1).PaddingTop(2).Foreground(lipgloss.Color("#689d6a")).Bold(false)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#fabd2f"))
@@ -40,6 +40,7 @@ func main() {
 	input := textinput.New()
 	usernameInput := textinput.New()
 	passwordInput := textinput.New()
+	groupnameInput := textinput.New()
 
 	messagelist := list.New([]list.Item{}, messageItemDelegate{}, 0, 0)
 	messagelist.Styles = list.Styles{
@@ -50,11 +51,12 @@ func main() {
 	messagelist.SetShowStatusBar(false)
 	messagelist.SetShowFilter(false)
 	m := model{
-		chats:         chatlist,
-		messages:      messagelist,
-		input:         input,
-		usernameInput: usernameInput,
-		passwordInput: passwordInput,
+		chats:          chatlist,
+		messages:       messagelist,
+		input:          input,
+		usernameInput:  usernameInput,
+		passwordInput:  passwordInput,
+		groupnameInput: groupnameInput,
 	}
 	m.chats.Title = "Chats"
 	m.chats.Styles.TitleBar.Align(lipgloss.Center)
@@ -70,7 +72,7 @@ func main() {
 
 func userLogin() {
 	// Send username
-	err := serverConn.WriteJSON(Message{Type: "join", From: username})
+	err := serverConn.WriteJSON(Message{Type: "cmd", From: username, Content: "login"})
 	if err != nil {
 		fmt.Println("Error sending username:", err)
 		return
@@ -114,10 +116,13 @@ func writeMessages(conn *websocket.Conn, msg Message) {
 	}
 }
 
-// func createGroup(conn *websocket.Conn, from string, reader *bufio.Reader) {
-// 	fmt.Println("Enter group name:")
-// 	group, _ := reader.ReadString('\n')
-// 	group = group[:len(group)-1]
+// func createGroup(conn *websocket.Conn, msg Message) {
+// 	// Send username
+// 	err := serverConn.WriteJSON(msg)
+// 	if err != nil {
+// 		fmt.Println("Error sending username:", err)
+// 		return
+// 	}
 
 // 	writeCommands(conn, reader, from, "", group, false, "create group")
 // }

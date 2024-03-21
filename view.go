@@ -15,6 +15,10 @@ func (m model) View() string {
 		return getLoginView(&m)
 	} else if m.currentView == help {
 		return getHelpView(&m)
+	} else if m.currentView == newGC {
+		return getNewGroupView(&m)
+	} else if m.currentView == joinGC {
+		return getJoinGroupView(&m)
 	}
 	return ""
 }
@@ -81,13 +85,57 @@ func getNewDMView(m *model) string {
 		Bold(false).
 		Foreground(lipgloss.Color("#83a598")).
 		Render(m.usernameInput.View())
-	newDMview := boxyStyle.Align(lipgloss.Center).
+	newDMView := boxyStyle.Align(lipgloss.Center).
 		AlignVertical(lipgloss.Center).
 		Width(m.width).
 		Height(m.height - 1).
 		Render(lipgloss.JoinVertical(lipgloss.Center, usernameHeadingView, usernameInputView))
 
-	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m), newDMview)
+	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m), newDMView)
+}
+
+func getNewGroupView(m *model) string {
+	groupNameHeadingView := lipgloss.NewStyle().
+		Width(m.width / 2).
+		Height(1).
+		Bold(true).
+		Foreground(lipgloss.Color("#fe8019")).
+		Render("Group Name")
+	groupNameInputView := boxyStyle.Width(m.width / 2).
+		Align(lipgloss.Left).
+		Height(1).
+		Bold(false).
+		Foreground(lipgloss.Color("#83a598")).
+		Render(m.groupnameInput.View())
+	newGroupView := boxyStyle.Align(lipgloss.Center).
+		AlignVertical(lipgloss.Center).
+		Width(m.width).
+		Height(m.height - 1).
+		Render(lipgloss.JoinVertical(lipgloss.Center, groupNameHeadingView, groupNameInputView))
+
+	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m), newGroupView)
+}
+
+func getJoinGroupView(m *model) string {
+	groupNameHeadingView := lipgloss.NewStyle().
+		Width(m.width / 2).
+		Height(1).
+		Bold(true).
+		Foreground(lipgloss.Color("#fe8019")).
+		Render("Group Name")
+	groupNameInputView := boxyStyle.Width(m.width / 2).
+		Align(lipgloss.Left).
+		Height(1).
+		Bold(false).
+		Foreground(lipgloss.Color("#83a598")).
+		Render(m.groupnameInput.View())
+	newGroupView := boxyStyle.Align(lipgloss.Center).
+		AlignVertical(lipgloss.Center).
+		Width(m.width).
+		Height(m.height - 1).
+		Render(lipgloss.JoinVertical(lipgloss.Center, groupNameHeadingView, groupNameInputView))
+
+	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m), newGroupView)
 }
 
 func getLoginView(m *model) string {
@@ -125,7 +173,12 @@ func getHelpView(m *model) string {
 		Bold(true).
 		Foreground(lipgloss.Color("#11bc7a")).
 		Render("Keyboard Shortcuts")
-	helplistView := lipgloss.NewStyle().PaddingLeft(1).Align(lipgloss.Left).Bold(false).Render("\n/ -> Enter Input \nm -> Select Message \nn -> New Message \nc -> Select Chat\n")
+	helplistView := lipgloss.
+		NewStyle().
+		PaddingLeft(1).
+		Align(lipgloss.Left).
+		Bold(false).
+		Render("\n/ -> Enter Input\nm -> Select Message\nc -> Select Chat\nn -> New Message\nj -> Join Group\ng -> New Group")
 	helpView := boxyStyle.Align(lipgloss.Left).
 		AlignVertical(lipgloss.Top).
 		Width(m.width).
