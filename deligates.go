@@ -46,7 +46,13 @@ func (d messageItemDelegate) Render(w io.Writer, m list.Model, index int, listIt
 
 	head := lipgloss.NewStyle().Bold(true).Render(i.From)
 
-	str := fmt.Sprintf("%s: %s", head, i.Content)
+	var str string
+
+	if i.Type == "message" {
+		str = fmt.Sprintf("%s: %s", head, i.Content)
+	} else {
+		str = fmt.Sprintf("%s: %s", head, "🖹 "+i.Content)
+	}
 
 	fn := itemStyle.Render
 	if index == m.Index() {

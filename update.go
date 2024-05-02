@@ -1,6 +1,10 @@
 package main
 
 import (
+	"log"
+	"os"
+	"os/exec"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -55,6 +59,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			updateNewGroup(&m, &msg, &cmds)
 		} else if m.currentView == joinGC {
 			updateJoinGroup(&m, &msg, &cmds)
+		} else if m.currentView == sendFile {
+			updateSendFile(&m, &msg, &cmds)
 		}
 
 	// Gets terminal Window Size
@@ -65,6 +71,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width - v
 		m.chats.SetSize(m.width/3-1, m.height-4)
 		m.messages.SetSize((2*m.width/3)-1, m.height-4)
+
+	case clearErrorMsg:
+		m.err = nil
 	}
 
 	return m, tea.Batch(cmds...)
@@ -84,6 +93,10 @@ func updateHome(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) quit {
 			m.currentView = newDM
 		case "g":
 			m.currentView = newGC
+		case "f":
+			m.currentView = sendFile
+		case "o":
+			OpenFile(m)
 		case "j":
 			m.currentView = joinGC
 		case "?":
@@ -244,5 +257,81 @@ func updateHelp(m *model, msg *tea.KeyMsg) {
 	switch msg.String() {
 	case "esc":
 		m.currentView = home
+	}
+}
+
+func updateSendFile(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) {
+	m.filenameInput.Focus()
+	switch msg.String() {
+	case "esc":
+		m.currentView = home
+		m.filenameInput.Reset()
+		m.filenameInput.Blur()
+	case "enter":
+		fileData, err := os.ReadFile(m.filenameInput.Value())
+		if err != nil {
+			print(m.filenameInput.Value())
+			panic(err)
+		}
+
+		newMsg := Message{Type: "file", From: username, To: m.currentChat, Group: "", IsGroupMsg: false, Content: m.filenameInput.Value(), FileData: fileData}
+		if m.chats.SelectedItem().(Chat).isGroupChat {
+			newMsg.IsGroupMsg = true
+			newMsg.Group = m.currentChat
+			newMsg.To = ""
+		}
+		writeMessages(serverConn, newMsg)
+		m.messages.InsertItem(len(m.messages.Items()), newMsg)
+		m.messages.Select(len(m.messages.Items()) - 1)
+		chatItems[m.currentChat] = append(chatItems[m.currentChat], newMsg)
+		m.currentView = home
+	}
+	var cmd tea.Cmd
+	m.filenameInput, cmd = m.filenameInput.Update(*msg)
+	*cmds = append(*cmds, cmd)
+
+	// switch msg.String() {
+	// case "ctrl+c", "q":
+	// 	m.quitting = true
+	// 	m.currentView = home
+	// }
+
+	// var cmd tea.Cmd
+	// m.filepicker, cmd = m.filepicker.Update(msg)
+
+	// // Did the user select a file?
+	// if didSelect, path := m.filepicker.DidSelectFile(msg); didSelect {
+	// 	// Get the path of the selected file.
+	// 	m.selectedFile = path
+	// }
+
+	// // Did the user select a disabled file?
+	// // This is only necessary to display an error to the user.
+	// if didSelect, path := m.filepicker.DidSelectDisabledFile(msg); didSelect {
+	// 	// Let's clear the selectedFile and display an error.
+	// 	m.err = errors.New(path + " is not valid.")
+	// 	m.selectedFile = ""
+	// 	cmd = tea.Batch(cmd, clearErrorAfter(2*time.Second))
+	// }
+	// *cmds = append(*cmds, cmd)
+}
+
+func OpenFile(m *model) {
+	msg := m.messages.SelectedItem().(Message)
+	if msg.Type == "file" {
+		err := os.WriteFile(msg.Content, msg.FileData, 0644)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		// Open the file using the default application
+		cmd := exec.Command("xdg-open", msg.Content) // Linux
+		// cmd := exec.Command("open", msg.FileName) // macOS
+		// cmd := exec.Command("start", msg.FileName) // Windows
+		err = cmd.Start()
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }

@@ -1,6 +1,8 @@
 package main
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 var boxyStyle = lipgloss.NewStyle().
 	Border(lipgloss.RoundedBorder()).
@@ -19,6 +21,8 @@ func (m model) View() string {
 		return getNewGroupView(&m)
 	} else if m.currentView == joinGC {
 		return getJoinGroupView(&m)
+	} else if m.currentView == sendFile {
+		return getFilePickerView(&m)
 	}
 	return ""
 }
@@ -178,11 +182,48 @@ func getHelpView(m *model) string {
 		PaddingLeft(1).
 		Align(lipgloss.Left).
 		Bold(false).
-		Render("\n/ -> Enter Input\nm -> Select Message\nc -> Select Chat\nn -> New Message\nj -> Join Group\ng -> New Group")
+		Render("\n/ -> Enter Input\nm -> Select Message\nc -> Select Chat\nn -> New Message\nj -> Join Group\ng -> New Group\nf -> Send File\no -> Open file")
 	helpView := boxyStyle.Align(lipgloss.Left).
 		AlignVertical(lipgloss.Top).
 		Width(m.width).
 		Height(m.height - 1).
 		Render(lipgloss.JoinVertical(lipgloss.Top, helpHeadingView, helplistView))
 	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m), helpView)
+}
+
+func getFilePickerView(m *model) string {
+	filenameHeadingView := lipgloss.NewStyle().
+		Width(m.width / 2).
+		Height(1).
+		Bold(true).
+		Foreground(lipgloss.Color("#fe8019")).
+		Render("File Name")
+	filenameInputView := boxyStyle.Width(m.width / 2).
+		Align(lipgloss.Left).
+		Height(1).
+		Bold(false).
+		Foreground(lipgloss.Color("#83a598")).
+		Render(m.filenameInput.View())
+	filepickerView := boxyStyle.Align(lipgloss.Center).
+		AlignVertical(lipgloss.Center).
+		Width(m.width).
+		Height(m.height - 1).
+		Render(lipgloss.JoinVertical(lipgloss.Center, filenameHeadingView, filenameInputView))
+
+	return lipgloss.JoinVertical(lipgloss.Top, getHeadView(m), filepickerView)
+
+	// if m.quitting {
+	// 	return ""
+	// }
+	// var s strings.Builder
+	// s.WriteString("\n  ")
+	// if m.err != nil {
+	// 	s.WriteString(m.filepicker.Styles.DisabledFile.Render(m.err.Error()))
+	// } else if m.selectedFile == "" {
+	// 	s.WriteString("Pick a file:")
+	// } else {
+	// 	s.WriteString("Selected file: " + m.filepicker.Styles.Selected.Render(m.selectedFile))
+	// }
+	// s.WriteString("\n\n" + m.filepicker.View() + "\n")
+	// return s.String()
 }

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 
+	"github.com/charmbracelet/bubbles/filepicker"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,7 +21,7 @@ var (
 )
 
 var (
-	titleStyle        = lipgloss.NewStyle().PaddingLeft(0).PaddingTop(0).Foreground(lipgloss.Color("#bdae93")).Bold(true)
+	titleStyle        = lipgloss.NewStyle().PaddingLeft(0).PaddingTop(0).Foreground(lipgloss.Color("#458588")).Bold(true)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#689d6a"))
 	noItemStyle       = lipgloss.NewStyle().PaddingLeft(1).PaddingTop(2).Foreground(lipgloss.Color("#689d6a")).Bold(false)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#fabd2f"))
@@ -41,6 +43,7 @@ func main() {
 	usernameInput := textinput.New()
 	passwordInput := textinput.New()
 	groupnameInput := textinput.New()
+	filenameInput := textinput.New()
 
 	messagelist := list.New([]list.Item{}, messageItemDelegate{}, 0, 0)
 	messagelist.Styles = list.Styles{
@@ -50,13 +53,20 @@ func main() {
 	messagelist.SetShowTitle(false)
 	messagelist.SetShowStatusBar(false)
 	messagelist.SetShowFilter(false)
+
+	fp := filepicker.New()
+	fp.AllowedTypes = []string{".mod", ".sum", ".go", ".txt", ".md"}
+	fp.CurrentDirectory, _ = os.UserHomeDir()
+
 	m := model{
 		chats:          chatlist,
+		filepicker:     fp,
 		messages:       messagelist,
 		input:          input,
 		usernameInput:  usernameInput,
 		passwordInput:  passwordInput,
 		groupnameInput: groupnameInput,
+		filenameInput:  filenameInput,
 	}
 	m.chats.Title = "Chats"
 	m.chats.Styles.TitleBar.Align(lipgloss.Center)

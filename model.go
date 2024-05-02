@@ -1,6 +1,9 @@
 package main
 
 import (
+	"time"
+
+	"github.com/charmbracelet/bubbles/filepicker"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,9 +12,10 @@ import (
 type Message struct {
 	Type       string `json:"type"`
 	IsGroupMsg bool   `json:"isGroupMsg"`
-	Group      string `json:"group"`
+	Group      string `json:"group,omitempty"`
 	To         string `json:"to"`
 	Content    string `json:"content"`
+	FileData   []byte `json:"fileData,omitempty"`
 	From       string `json:"From"`
 }
 
@@ -60,6 +64,7 @@ const (
 	newDM
 	newGC
 	joinGC
+	sendFile
 	home
 	help
 )
@@ -69,8 +74,13 @@ type model struct {
 	width          int
 	chats          list.Model
 	messages       list.Model
+	filepicker     filepicker.Model
+	selectedFile   string
+	quitting       bool
+	err            error
 	input          textinput.Model
 	usernameInput  textinput.Model
+	filenameInput  textinput.Model
 	groupnameInput textinput.Model
 	passwordInput  textinput.Model
 	currentChat    string
@@ -78,6 +88,14 @@ type model struct {
 	currentView    view
 }
 
+type clearErrorMsg struct{}
+
+func clearErrorAfter(t time.Duration) tea.Cmd {
+	return tea.Tick(t, func(_ time.Time) tea.Msg {
+		return clearErrorMsg{}
+	})
+}
+
 func (m model) Init() tea.Cmd {
-	return nil
+	return m.filepicker.Init()
 }
