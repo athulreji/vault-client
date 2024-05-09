@@ -1,12 +1,11 @@
 package main
 
 import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"log"
 	"os"
 	"os/exec"
-
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type quit bool
@@ -24,6 +23,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			recvChat.isGroupChat = false
 			recvChat.name = msg.From
+
+			msg.Content = Decrypt(msg.Content, msg.To)
+
 		}
 		if _, ok := chatItems[recvChat.name]; !ok {
 			index := m.chats.Index()
@@ -131,10 +133,13 @@ func updateHome(m *model, msg *tea.KeyMsg, cmds *[]tea.Cmd) quit {
 					newMsg.Group = m.currentChat
 					newMsg.To = ""
 				}
-				writeMessages(serverConn, newMsg)
 				m.messages.InsertItem(len(m.messages.Items()), newMsg)
 				m.messages.Select(len(m.messages.Items()) - 1)
 				chatItems[m.currentChat] = append(chatItems[m.currentChat], newMsg)
+
+				newMsg.Content = Encrypt(newMsg.Content, newMsg.To)
+				writeMessages(serverConn, newMsg)
+
 				m.input.Reset()
 			}
 		}

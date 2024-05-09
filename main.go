@@ -87,6 +87,7 @@ func userLogin() {
 		fmt.Println("Error sending username:", err)
 		return
 	}
+	sendKeys()
 }
 
 func startConnection(p *tea.Program, ch chan *websocket.Conn) {
@@ -112,6 +113,10 @@ func startConnection(p *tea.Program, ch chan *websocket.Conn) {
 			fmt.Println("Error decoding JSON:", err)
 			continue
 		}
+		if msg.Type == "getKey" {
+			getKeys(msg)
+			continue
+		}
 		p.Send(msg)
 		// chats[msg.From] = append(chats[msg.From], msg)
 		// fmt.Println(msg.From+":", msg.Content)
@@ -125,6 +130,22 @@ func writeMessages(conn *websocket.Conn, msg Message) {
 		return
 	}
 }
+
+func sendKeys() {
+	newMsg := Message{Type: "keys", From: username, To: "", Group: "", IsGroupMsg: false, Content: SendKeysContent()}
+	writeMessages(serverConn, newMsg)
+}
+
+// func getPublicKey(user string)[]byte{
+// 	if PublicKey[user] != nil{
+// 		newMsg := Message{Type: "getKey", From: username, To:"", Group: "", IsGroupMsg: false, Content: user}
+// 		writeMessages(serverConn, newMsg)
+// 	}
+// 	if PublicKey[user] == nil{
+
+// 	}
+// 	return PublicKey[user]
+// }
 
 // func createGroup(conn *websocket.Conn, msg Message) {
 // 	// Send username
